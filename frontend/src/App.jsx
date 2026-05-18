@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const API = '/api'
 
@@ -26,9 +26,6 @@ function App() {
   const logRef = useRef(null)
   const [guide, setGuide] = useState(false)
 
-  const audioRef = useRef(null)
-  const chartRef = useRef(null)
-
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
@@ -48,7 +45,21 @@ function App() {
     setLogs(prev => [...prev, { source, message, ts }].slice(-50))
   }
 
-  const resetAll = useCallback(() => {
+  function handleAudioUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAudioFile(file)
+    addLog('USER', `Audio: ${file.name}`)
+  }
+
+  function handleChartUpload(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setChartFile(file)
+    addLog('USER', `Chart: ${file.name}`)
+  }
+
+  function resetAll() {
     setAudioFile(null)
     setChartFile(null)
     setStep1({ status: 'idle', result: '', error: '' })
@@ -58,9 +69,9 @@ function App() {
     setOrderReceipt(null)
     setPipelineError('')
     addLog('USER', 'Pipeline reset.')
-  }, [])
+  }
 
-  const handleExecute = useCallback(async () => {
+  async function handleExecute() {
     if (!audioFile || !chartFile || running) return
     setRunning(true)
     setPipelineError('')
@@ -133,26 +144,12 @@ function App() {
       addLog('ENSEMBLE', `ERROR: ${err.message}`)
     }
     setRunning(false)
-  }, [audioFile, chartFile, running, step1.result, step2.result])
+  }
 
   useEffect(() => {
     function handleKey(e) {
-      if (e.target.tagName === 'INPUT') return
-
+      if (e.target?.tagName === 'INPUT') return
       switch (e.key) {
-        case '1':
-          audioRef.current?.click()
-          break
-        case '2':
-          chartRef.current?.click()
-          break
-        case 'Enter':
-          e.preventDefault()
-          if (audioFile && chartFile && !running) handleExecute()
-          break
-        case 'Escape':
-          resetAll()
-          break
         case 'g':
         case 'G':
           setGuide(p => !p)
@@ -165,7 +162,7 @@ function App() {
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [audioFile, chartFile, running, handleExecute, resetAll])
+  }, [])
 
   const connectedServices = health
     ? Object.entries(health).filter(([k, v]) => k !== 'status' && v)
@@ -253,18 +250,18 @@ function App() {
             <span>Input Sources</span>
           </div>
           <div className="upload-row">
-            <div className={`file-zone ${audioFile ? 'has-file' : ''}`} onClick={() => audioRef.current?.click()}>
+            <label className={`file-zone ${audioFile ? 'has-file' : ''}`}>
               <div className="file-icon">🎙️</div>
               <div className="file-label">Voice Command</div>
-              <div className="file-hint">{audioFile ? audioFile.name : '.wav or .mp3'}</div>
-              <input ref={audioRef} type="file" accept=".wav,.mp3" onChange={e => { setAudioFile(e.target.files[0]); addLog('USER', `Audio: ${e.target.files[0].name}`) }} />
-            </div>
-            <div className={`file-zone ${chartFile ? 'has-file' : ''}`} onClick={() => chartRef.current?.click()}>
+              <div className="file-hint">{audioFile ? audioFile.name : 'Any audio file'}</div>
+              <input type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac,.webm" onChange={handleAudioUpload} />
+            </label>
+            <label className={`file-zone ${chartFile ? 'has-file' : ''}`}>
               <div className="file-icon">📊</div>
               <div className="file-label">Chart Image</div>
               <div className="file-hint">{chartFile ? chartFile.name : '.png or .jpg'}</div>
-              <input ref={chartRef} type="file" accept=".png,.jpg,.jpeg" onChange={e => { setChartFile(e.target.files[0]); addLog('USER', `Chart: ${e.target.files[0].name}`) }} />
-            </div>
+              <input type="file" accept=".png,.jpg,.jpeg" onChange={handleChartUpload} />
+            </label>
             <div className="upload-actions">
               <button className="execute-btn" disabled={!audioFile || !chartFile || running} onClick={handleExecute}>
                 {running ? <span className="spinner" /> : 'Execute'}
