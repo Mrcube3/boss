@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoxRegime Oracle — Presentation</title>
+<style>
+  :root {
+    --bg: #0d1b2a;
+    --accent: #0071e3;
+    --text: #f5f5f7;
+    --text-dim: rgba(255,255,255,0.5);
+    --glass: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 6rem;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(0,113,227,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .slide-num {
+    position: absolute;
+    top: 2rem;
+    left: 3rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Slide 1 - Title */
+  .title-icon { font-size: 4rem; margin-bottom: 1.5rem; }
+  .title-main {
+    font-size: 3.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, #0071e3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+  .title-sub {
+    font-size: 1.3rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    max-width: 600px;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .title-badge {
+    margin-top: 2rem;
+    padding: 0.4rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    background: var(--glass);
+  }
+
+  /* Slide 2 - Problem */
+  .slide-title {
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin-bottom: 2.5rem;
+    letter-spacing: -0.01em;
+  }
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 900px;
+    width: 100%;
+  }
+  .problem-card {
+    padding: 1.5rem;
+    border-radius: 16px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+  }
+  .problem-card .icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .problem-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .problem-card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; }
+
+  /* Slide 3 - Architecture */
+  .arch-flow {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 950px;
+    width: 100%;
+  }
+  .arch-node {
+    flex: 1;
+    padding: 1.2rem;
+    border-radius: 14px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .arch-node .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .arch-node h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .arch-node p { font-size: 0.7rem; color: var(--text-dim); }
+  .arch-arrow {
+    font-size: 1.2rem;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .arch-stack {
+    margin-top: 2rem;
+    display: flex;
+    gap: 2rem;
+    max-width: 700px;
+  }
+  .arch-stack-item {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    background: rgba(0,113,227,0.1);
+    border: 1px solid rgba(0,113,227,0.2);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #5ac8fa;
+  }
+
+  /* Slide 4 - Pipeline */
+  .pipeline-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+    max-width: 900px;
+    width: 100%;
+  }
+  .pipeline-step {
+    padding: 1.5rem 1rem;
+    border-radius: 14px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .pipeline-step .num {
+    position: absolute;
+    top: 0.8rem;
+    right: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.04);
+  }
+  .pipeline-step .icon { font-size: 1.5rem; margin-bottom: 0.6rem; }
+  .pipeline-step h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .pipeline-step p { font-size: 0.75rem; color: var(--text-dim); line-height: 1.4; }
+  .pipeline-step .tech {
+    margin-top: 0.6rem;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(0,113,227,0.15);
+    color: #5ac8fa;
+    display: inline-block;
+  }
+
+  /* Slide 5 - Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    max-width: 800px;
+    width: 100%;
+  }
+  .result-card {
+    padding: 1.5rem;
+    border-radius: 14px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+  }
+  .result-card .metric {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+  }
+  .result-card h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .result-card p { font-size: 0.8rem; color: var(--text-dim); line-height: 1.4; }
+  .cta {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .cta a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(0,113,227,0.3);
+    padding-bottom: 2px;
+  }
+  .cta a:hover { border-color: var(--accent); }
+
+  /* Nav */
+  .nav {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 100;
+  }
+  .nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .nav-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(0,113,227,0.5);
+  }
+  .nav-btn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.1); }
+  .nav-prev { left: 1.5rem; }
+  .nav-next { right: 1.5rem; }
+  .hint {
+    position: fixed;
+    bottom: 3.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+
+<div class="slide active" data-slide="0">
+  <span class="slide-num">01 / 05</span>
+  <div class="title-icon">🔮</div>
+  <h1 class="title-main">VoxRegime Oracle</h1>
+  <p class="title-sub">Voice-driven AI trading system that transcribes commands, analyzes chart regimes, and executes orders through an ensemble of financial LLMs</p>
+  <div class="title-badge">React + FastAPI · Featherless Swarm · Kraken CLI</div>
+</div>
+
+<div class="slide" data-slide="1">
+  <span class="slide-num">02 / 05</span>
+  <h2 class="slide-title">The Problem</h2>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="icon">⏱️</div>
+      <h3>Slow Execution</h3>
+      <p>Manual trading requires switching between platforms, typing commands, and confirming — losing critical seconds in fast markets.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">🧠</div>
+      <h3>Single-Model Risk</h3>
+      <p>Relying on one AI model for trade decisions creates blind spots. Different models see different signals in the same data.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">📊</div>
+      <h3>Context Blindness</h3>
+      <p>Most trading bots ignore visual chart context. Regime classification from charts is critical for risk-aware execution.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-slide="2">
+  <span class="slide-num">03 / 05</span>
+  <h2 class="slide-title">Architecture</h2>
+  <div class="arch-flow">
+    <div class="arch-node">
+      <div class="icon">🎙️</div>
+      <h4>Audio Input</h4>
+      <p>.wav / .mp3 upload</p>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="icon">🗣️</div>
+      <h4>Speechmatics</h4>
+      <p>STT transcription</p>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="icon">👁️</div>
+      <h4>Gemini Vision</h4>
+      <p>Chart regime analysis</p>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="icon">🤖</div>
+      <h4>Featherless Swarm</h4>
+      <p>3-model ensemble vote</p>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node">
+      <div class="icon">⚡</div>
+      <h4>Kraken CLI</h4>
+      <p>Order execution</p>
+    </div>
+  </div>
+  <div class="arch-stack">
+    <div class="arch-stack-item">React 19 Frontend</div>
+    <div class="arch-stack-item">FastAPI Backend</div>
+    <div class="arch-stack-item">Vercel Deployment</div>
+  </div>
+</div>
+
+<div class="slide" data-slide="3">
+  <span class="slide-num">04 / 05</span>
+  <h2 class="slide-title">Pipeline Stages</h2>
+  <div class="pipeline-steps">
+    <div class="pipeline-step">
+      <span class="num">1</span>
+      <div class="icon">🗣️</div>
+      <h4>Transcribe</h4>
+      <p>Convert voice command to structured text with speaker diarization</p>
+      <span class="tech">Speechmatics STT</span>
+    </div>
+    <div class="pipeline-step">
+      <span class="num">2</span>
+      <div class="icon">👁️</div>
+      <h4>Analyze</h4>
+      <p>Classify chart regime: Bullish, Bearish, or Range-bound with support/resistance</p>
+      <span class="tech">Gemini 1.5 Flash</span>
+    </div>
+    <div class="pipeline-step">
+      <span class="num">3</span>
+      <div class="icon">🤖</div>
+      <h4>Ensemble</h4>
+      <p>Three financial LLMs vote independently — consensus determines action</p>
+      <span class="tech">Featherless API</span>
+    </div>
+    <div class="pipeline-step">
+      <span class="num">4</span>
+      <div class="icon">⚡</div>
+      <h4>Execute</h4>
+      <p>Fire BUY/SELL/HOLD order via Kraken CLI with risk profile applied</p>
+      <span class="tech">Kraken xstocks</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-slide="4">
+  <span class="slide-num">05 / 05</span>
+  <h2 class="slide-title">Results & Status</h2>
+  <div class="results-grid">
+    <div class="result-card">
+      <div class="metric">4</div>
+      <h4>Pipeline Stages</h4>
+      <p>End-to-end automation from voice to executed order in a single click</p>
+    </div>
+    <div class="result-card">
+      <div class="metric">3</div>
+      <h4>Ensemble Models</h4>
+      <p>Open-Finance-7B, Finance-LLM, and FinGPT-v3 vote on every decision</p>
+    </div>
+    <div class="result-card">
+      <div class="metric">✓</div>
+      <h4>Sandbox Mode</h4>
+      <p>Fully functional without API keys — simulated responses for demo and testing</p>
+    </div>
+    <div class="result-card">
+      <div class="metric">🌐</div>
+      <h4>Live on Vercel</h4>
+      <p>Deployed with React frontend + FastAPI backend, responsive design</p>
+    </div>
+  </div>
+  <div class="cta">
+    <a href="https://github.com/Mrcube3/boss">github.com/Mrcube3/boss</a>
+    &nbsp;·&nbsp;
+    <a href="https://boss-3qcw.vercel.app">Live Demo →</a>
+  </div>
+</div>
+
+<button class="nav-btn nav-prev" onclick="go(-1)">‹</button>
+<button class="nav-btn nav-next" onclick="go(1)">›</button>
+<div class="nav" id="nav"></div>
+<div class="hint">Use ← → arrow keys or click to navigate</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const nav = document.getElementById('nav');
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    nav.appendChild(dot);
+  });
+
+  function goTo(n) {
+    if (n === current || n < 0 || n >= slides.length) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add(n > current ? 'exit' : '');
+    slides[current].style.transform = n > current ? 'translateX(-60px)' : 'translateX(60px)';
+    current = n;
+    slides.forEach((s, i) => {
+      s.classList.remove('exit');
+      if (i === current) {
+        s.classList.add('active');
+        s.style.transform = '';
+      }
+    });
+    document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
+
+  function go(dir) { goTo(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') go(1);
+    if (e.key === 'ArrowLeft') go(-1);
+  });
+</script>
+</body>
+</html>
