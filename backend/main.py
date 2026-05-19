@@ -50,6 +50,8 @@ else:
 
 app = FastAPI(title="VoxRegime Oracle API")
 
+api = FastAPI(title="VoxRegime Oracle API")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -58,7 +60,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/health")
+@api.get("/health")
 async def health():
     return {
         "status": "ok",
@@ -86,7 +88,7 @@ async def run_speechmatics_transcription(file_path: str) -> str:
         except Exception as e:
             return f"Speechmatics Core Execution Error: {str(e)}"
 
-@app.post("/transcribe")
+@api.post("/transcribe")
 async def transcribe(audio: UploadFile = File(...)):
     if not SPEECHMATICS_API_KEY:
         return JSONResponse(content={"transcript": "Execute momentum trade on NVDAx with a 2 percent risk profile immediately.", "simulated": True})
@@ -103,7 +105,7 @@ async def transcribe(audio: UploadFile = File(...)):
         if os.path.exists(path):
             os.remove(path)
 
-@app.post("/analyze-chart")
+@api.post("/analyze-chart")
 async def analyze_chart(image: UploadFile = File(...)):
     if not GEMINI_API_KEY:
         return JSONResponse(content={
@@ -149,7 +151,7 @@ def run_featherless_model(model_name: str, context: str) -> dict:
     except Exception as e:
         return {"model": model_name, "error": str(e), "signal": "HOLD", "confidence": 0.0, "logic": "Processing Exception Fallback"}
 
-@app.post("/execute-pipeline")
+@api.post("/execute-pipeline")
 async def execute_pipeline(data: dict):
     voice_transcript = data.get("transcript", "")
     visual_regime = data.get("chart_analysis", "")
@@ -189,6 +191,8 @@ async def execute_pipeline(data: dict):
         "individual_metrics": votes,
         "order": order
     }
+
+app.mount("/api", api)
 
 if __name__ == "__main__":
     import uvicorn
